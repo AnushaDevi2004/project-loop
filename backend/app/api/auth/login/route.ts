@@ -1,25 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { registerSchema } from "@/validations/auth.validation";
-import { registerUser } from "@/services/auth.service";
+import { loginSchema } from "@/validations/login.validation";
+import { loginUser } from "@/services/login.service";
 
 export async function POST(request: NextRequest) {
   try {
-    // Get request body
+    // Read request body
     const body = await request.json();
 
-    // Validate input
-    const validatedData = registerSchema.parse(body);
+    // Validate request
+    const validatedData = loginSchema.parse(body);
 
-    // Register user
-    const user = await registerUser(validatedData);
+    // Login user
+    const result = await loginUser(validatedData);
 
     return NextResponse.json(
       {
         success: true,
-        message: "User registered successfully",
-        data: user,
+        message: "Login successful",
+        data: result,
       },
-      { status: 201 }
+      { status: 200 }
     );
   } catch (error: any) {
     return NextResponse.json(
