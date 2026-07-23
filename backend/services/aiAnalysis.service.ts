@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { analyzeWithClaude } from "./claude.service";
 
 export async function analyzeFeedback(feedbackId: string) {
-  // Find feedback
+  console.log("Step 1: Finding feedback...");
+
   const feedback = await prisma.feedback.findUnique({
     where: {
       id: feedbackId,
@@ -13,11 +14,13 @@ export async function analyzeFeedback(feedbackId: string) {
     throw new Error("Feedback not found");
   }
 
-  // Analyze feedback using Claude (mock for now)
+  console.log("Step 2: Feedback found:", feedback);
+
   const result = await analyzeWithClaude(feedback.comment);
 
-  // Save AI analysis
-  return prisma.aIAnalysis.create({
+  console.log("Step 3: Claude Result:", result);
+
+  const analysis = await prisma.aIAnalysis.create({
     data: {
       sentiment: result.sentiment,
       score: result.score,
@@ -29,6 +32,10 @@ export async function analyzeFeedback(feedbackId: string) {
       feedbackId,
     },
   });
+
+  console.log("Step 4: Saved to database:", analysis);
+
+  return analysis;
 }
 
 // Get AI Analysis by Feedback ID
