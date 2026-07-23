@@ -45,3 +45,18 @@ export async function loginUser(data: LoginInput) {
     },
   };
 }
+
+export async function getMyFeedback(userId: string) {
+  return prisma.feedback.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      project: true,
+      aiAnalysis: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}

@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createProjectSchema } from "@/validations/project.validation";
+import { authorize } from "@/middleware/role";
 import {
   createProject,
   getAllProjects,
 } from "@/services/project.service";
 
 // GET /api/projects
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    authorize(request,["ADMIN"]);
+
     const projects = await getAllProjects();
 
     return NextResponse.json({
@@ -20,7 +23,7 @@ export async function GET() {
         success: false,
         message: error.message,
       },
-      { status: 500 }
+      { status: 401 }
     );
   }
 }
@@ -28,6 +31,8 @@ export async function GET() {
 // POST /api/projects
 export async function POST(request: NextRequest) {
   try {
+    authorize(request,["ADMIN","STUDENT"]);
+
     const body = await request.json();
 
     const validatedData = createProjectSchema.parse(body);
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
         success: false,
         message: error.message,
       },
-      { status: 400 }
+      { status: 401 }
     );
   }
 }

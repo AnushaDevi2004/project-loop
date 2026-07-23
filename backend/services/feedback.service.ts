@@ -2,13 +2,16 @@ import { prisma } from "@/lib/prisma";
 import { CreateFeedbackInput } from "@/validations/feedback.validation";
 
 // Create Feedback
-export async function createFeedback(data: CreateFeedbackInput) {
+export async function createFeedback(
+  data: CreateFeedbackInput,
+  userId: string
+) {
   return prisma.feedback.create({
     data: {
       rating: data.rating,
       comment: data.comment,
-      userId: data.userId,
       projectId: data.projectId,
+      userId,
     },
   });
 }
@@ -53,7 +56,6 @@ export async function updateFeedback(
     data: {
       rating: data.rating,
       comment: data.comment,
-      userId: data.userId,
       projectId: data.projectId,
     },
   });
@@ -61,6 +63,80 @@ export async function updateFeedback(
 
 // Delete Feedback
 export async function deleteFeedback(id: string) {
+  return prisma.feedback.delete({
+    where: {
+      id,
+    },
+  });
+}
+
+// Get Logged-in User Feedback
+export async function getMyFeedback(userId: string) {
+  return prisma.feedback.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      project: true,
+      aiAnalysis: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+// Update Logged-in User Feedback
+export async function updateMyFeedback(
+  id: string,
+  userId: string,
+  rating: number,
+  comment: string
+) {
+  const feedback = await prisma.feedback.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!feedback) {
+    throw new Error("Feedback not found");
+  }
+
+  if (feedback.userId !== userId) {
+    throw new Error("You can update only your own feedback");
+  }
+
+  return prisma.feedback.update({
+    where: {
+      id,
+    },
+    data: {
+      rating,
+      comment,
+    },
+  });
+}
+
+// Delete Logged-in User Feedback
+export async function deleteMyFeedback(
+  id: string,
+  userId: string
+) {
+  const feedback = await prisma.feedback.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!feedback) {
+    throw new Error("Feedback not found");
+  }
+
+  if (feedback.userId !== userId) {
+    throw new Error("You can delete only your own feedback");
+  }
+
   return prisma.feedback.delete({
     where: {
       id,

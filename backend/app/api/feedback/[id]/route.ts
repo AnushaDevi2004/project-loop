@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getFeedbackById,
-  updateFeedback,
-  deleteFeedback,
+  updateMyFeedback,
+  deleteMyFeedback,
 } from "@/services/feedback.service";
-import { createFeedbackSchema } from "@/validations/feedback.validation";
+
+
+import { authenticate } from "@/middleware/auth";
+import { updateFeedbackSchema } from "@/validations/feedback.validation";
 
 // GET /api/feedback/:id
 export async function GET(
@@ -47,18 +50,33 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = authenticate(request) as {
+      id: string;
+      email: string;
+      role: string;
+    };
+
     const { id } = await params;
 
     const body = await request.json();
-    const validatedData = createFeedbackSchema.parse(body);
 
-    const feedback = await updateFeedback(id, validatedData);
+    const validatedData = updateFeedbackSchema.parse(body);
 
-    return NextResponse.json({
-      success: true,
-      message: "Feedback updated successfully",
-      data: feedback,
-    });
+    const feedback = await updateMyFeedback(
+      id,
+      user.id,
+      validatedData.rating,
+      validatedData.comment
+    );
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Feedback updated successfully",
+        data: feedback,
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     return NextResponse.json(
       {
@@ -76,14 +94,23 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = authenticate(request) as {
+      id: string;
+      email: string;
+      role: string;
+    };
+
     const { id } = await params;
 
-    await deleteFeedback(id);
+    await deleteMyFeedback(id, user.id);
 
-    return NextResponse.json({
-      success: true,
-      message: "Feedback deleted successfully",
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Feedback deleted successfully",
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     return NextResponse.json(
       {

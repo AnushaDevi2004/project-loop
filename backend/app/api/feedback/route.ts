@@ -4,15 +4,28 @@ import {
   createFeedback,
   getAllFeedback,
 } from "@/services/feedback.service";
+import { authenticate } from "@/middleware/auth";
+import { authorize } from "@/middleware/role";
 
 // POST /api/feedback
 export async function POST(request: NextRequest) {
   try {
+    authorize(request, ["USER"]);
+
+    const user = authenticate(request) as {
+      id: string;
+      email: string;
+      role: string;
+    };
+
     const body = await request.json();
 
     const validatedData = createFeedbackSchema.parse(body);
 
-    const feedback = await createFeedback(validatedData);
+    const feedback = await createFeedback(
+      validatedData,
+      user.id
+    );
 
     return NextResponse.json(
       {
@@ -32,10 +45,11 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
 // GET /api/feedback
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    authorize(request, ["ADMIN", "ANALYST"]);
+
     const feedback = await getAllFeedback();
 
     return NextResponse.json({
@@ -48,7 +62,7 @@ export async function GET() {
         success: false,
         message: error.message,
       },
-      { status: 500 }
+      { status: 401 }
     );
   }
 }
