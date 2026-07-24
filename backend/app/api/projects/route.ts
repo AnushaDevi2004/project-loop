@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 // POST /api/projects
 export async function POST(request: NextRequest) {
   try {
-    authorize(request,["ADMIN","STUDENT"]);
+    authorize(request,["ADMIN","USER"]);
 
     const body = await request.json();
 

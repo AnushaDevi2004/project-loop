@@ -5,6 +5,8 @@ import {
   deleteProject,
 } from "@/services/project.service";
 import { createProjectSchema } from "@/validations/project.validation";
+import { updateProjectSchema } from "@/validations/project.validation";
+import { authorize } from "@/middleware/role";
 
 // GET /api/projects/:id
 export async function GET(
@@ -41,25 +43,35 @@ export async function GET(
   }
 }
 
+
 // PUT /api/projects/:id
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    authorize(request, ["ADMIN"]);
+
     const { id } = await params;
 
     const body = await request.json();
 
-    const validatedData = createProjectSchema.parse(body);
+    const validatedData = updateProjectSchema.parse(body);
 
-    const project = await updateProject(id, validatedData);
+    const project = await updateProject(
+      id,
+      validatedData.title,
+      validatedData.description
+    );
 
-    return NextResponse.json({
-      success: true,
-      message: "Project updated successfully",
-      data: project,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Project updated successfully",
+        data: project,
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     return NextResponse.json(
       {
@@ -77,14 +89,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    authorize(request, ["ADMIN"]);
+
     const { id } = await params;
 
     await deleteProject(id);
 
-    return NextResponse.json({
-      success: true,
-      message: "Project deleted successfully",
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Project deleted successfully",
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     return NextResponse.json(
       {
@@ -95,5 +112,3 @@ export async function DELETE(
     );
   }
 }
-
-
