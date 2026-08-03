@@ -3,10 +3,10 @@ AI-Powered Customer Feedback Analysis System built using Next.js, Prisma, Postgr
 
 ### Team Members
 
-- Frontend Developer
-- Backend Developer
-- Database Developer
-- AI Developer
+- Frontend Developer-Roopchand Varma
+- Backend Developer-Moazzam Khalid
+- Database Developer-Anusha Devi
+- AI Developer-Prashmi Yadav
 
 ## Tech Stack
 
